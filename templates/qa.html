@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Q&A</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(1000px 500px at 20% -10%, #e1f7ff 0%, rgba(225,247,255,0) 60%),
+                            radial-gradient(800px 400px at 120% 10%, #f6e8ff 0%, rgba(246,232,255,0) 60%),
+                            linear-gradient(180deg, #ffffff, #f8fbff);
+            --card-bg: rgba(255,255,255,0.7);
+            --card-br: 16px;
+            --border: 1px solid rgba(0,0,0,0.06);
+            --shadow: 0 10px 30px rgba(24,39,75,0.06), 0 1px 1px rgba(0,0,0,0.02);
+            --primary: #00b5d1;
+            --primary-2: #7c69ef;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); margin: 0; color: var(--text); }
+
+        /* Header */
+        .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 22px; background: #ffffffcc; backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+        .brand i { color: var(--primary-2); }
+        .top-actions a { text-decoration: none; color: var(--muted); font-weight: 600; border: var(--border); padding: 8px 12px; border-radius: 10px; background: #fff; }
+        .top-actions a:hover { color: var(--text); }
+
+        /* Card */
+        .qa-card { max-width: 880px; margin: 32px auto; padding: 32px; background: var(--card-bg); border: var(--border); border-radius: 22px; box-shadow: var(--shadow); backdrop-filter: blur(12px); }
+        .qa-container { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+        .progress { font-size: 13px; color: var(--muted); border: var(--border); padding: 6px 12px; border-radius: 999px; background: #fff; }
+
+        /* Bubbles */
+        .bubble { width: 100%; border: var(--border); border-radius: 18px; padding: 16px 18px; display: flex; align-items: center; gap: 12px; background: #fff; box-shadow: 0 2px 0 rgba(0,0,0,0.02); }
+        .bubble i { font-size: 22px; }
+        .bubble p { margin: 0; font-size: 20px; line-height: 1.35; color: var(--text); }
+        .bubble.ai i { color: var(--primary-2); }
+        .bubble.user i { color: var(--text); }
+
+        /* Video */
+        .video-wrap { display: grid; place-items: center; padding: 10px 0; }
+        .video-circle { width: 240px; height: 240px; border-radius: 50%; object-fit: cover; border: 3px solid #e9f2ff; box-shadow: 0 10px 30px rgba(16,24,40,0.06); position: relative; }
+        .ring { position: absolute; width: 280px; height: 280px; border-radius: 50%; border: 2px dashed rgba(124,105,239,0.35); animation: spin 12s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Controls */
+        .controls { display: flex; align-items: center; justify-content: center; gap: 14px; }
+        .ctrl-btn { width: 54px; height: 54px; border-radius: 50%; border: none; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: #fff; border: var(--border); box-shadow: var(--shadow); transition: transform 0.15s ease, box-shadow 0.2s ease; }
+        .ctrl-btn:hover { transform: translateY(-1px); }
+        .ctrl-btn:active { transform: translateY(0); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .ctrl-btn.mic { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; border: none; }
+        .ctrl-btn.mic.active { box-shadow: 0 0 0 8px rgba(124,105,239,0.12), 0 10px 30px rgba(124,105,239,0.35); }
+        .ctrl-btn.stop { background: #fff; color: #475569; }
+
+        /* Hidden answer holders */
+        .hidden-fields { display: none; }
+
+        @media (max-width: 640px) {
+            .qa-card { margin: 16px; padding: 20px; }
+            .video-circle { width: 200px; height: 200px; }
+            .bubble p { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="brand"><i class="fa-solid fa-heart-pulse"></i> Patient Intake</div>
+        <div class="top-actions">
+            <a href="/qa">Intake</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/patient_reviw">Review</a>
+        </div>
+    </div>
+
+    <div class="qa-card">
+        <div class="qa-container">
+            <div class="progress" id="qaProgress">Getting started…</div>
+
+            <div class="bubble user">
+                <i class="fa-regular fa-user"></i>
+                <p id="answerDisplay">patient answer here</p>
+            </div>
+
+            <div class="video-wrap">
+                <div class="ring" aria-hidden="true"></div>
+                <img class="video-circle" src="{{ url_for('camera.video_feed') }}" alt="patient video stream">
+            </div>
+
+            <div class="bubble ai">
+                <i class="fa-solid fa-robot"></i>
+                <p id="questionDisplay">AI Question here</p>
+            </div>
+
+            <div class="controls" style="gap:10px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(0,0,0,0.06);background:#fff;border-radius:999px;padding:4px 10px">
+                    <span style="font-size:12px;color:#64748b;font-weight:700">Language</span>
+                    <select id="qaLang" style="border:none;outline:none;background:transparent;font-weight:700">
+                        <option value="en" selected>English</option>
+                        <option value="hi">Hindi</option>
+                    </select>
+                </div>
+                <button id="qaMic" class="ctrl-btn mic" title="Start interview">
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <button id="qaCancel" class="ctrl-btn stop" title="Cancel / Stop">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Hidden answer holders expected by static/main.js -->
+            <div class="hidden-fields">
+                <span id="name"></span>
+                <span id="age"></span>
+                <span id="gender"></span>
+                <span id="contact"></span>
+                <span id="address"></span>
+                <span id="medicalHistory"></span>
+                <span id="chiefComplaint"></span>
+                <span id="painLevel"></span>
+                <span id="painDescription"></span>
+                <span id="additionalSymptoms"></span>
+                <span id="emergencyName"></span>
+                <span id="emergencyRelation"></span>
+                <span id="emergencyGender"></span>
+                <span id="emergencyContact"></span>
+                <span id="emergencyAddress"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/core/tts.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pages/qa.js') }}"></script>
+    <script>
+        // Wire up controls to existing logic in static/main.js
+        document.getElementById('qaMic').addEventListener('click', function () {
+            if (window.stopSpeaking) window.stopSpeaking();
+            if (typeof index !== 'undefined') index = 0;
+            try {
+                const lang = document.getElementById('qaLang').value;
+                // set recognition language if available
+                if (window.recog) {
+                    window.recog.lang = (lang === 'hi') ? 'hi-IN' : 'en-US';
+                }
+                // store selection for persistence
+                sessionStorage.setItem('qa_lang', lang);
+            } catch (e) {}
+            if (typeof start === 'function') start();
+            document.getElementById('qaMic').classList.add('active');
+        });
+
+        document.getElementById('qaCancel').addEventListener('click', function () {
+            if (window.stopSpeaking) window.stopSpeaking();
+            try { if (window.recog && typeof window.recog.stop === 'function') window.recog.stop(); } catch (e) {}
+            if (typeof index !== 'undefined') index = 0;
+            document.getElementById('qaMic').classList.remove('active');
+        });
+
+        // Progress badge updates from main.js via MutationObservers on hidden fields
+        const fields = [
+            'name','age','gender','contact','address','medicalHistory','chiefComplaint','painLevel','painDescription','additionalSymptoms','emergencyName','emergencyRelation','emergencyGender','emergencyContact','emergencyAddress'
+        ];
+        let answered = 0;
+        const updateProgress = () => {
+            const pct = Math.round((answered / fields.length) * 100);
+            document.getElementById('qaProgress').innerText = `Progress: ${pct}%`;
+        };
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const obs = new MutationObserver(() => {
+                answered = fields.filter(fid => (document.getElementById(fid)?.innerText || '').trim().length > 0).length;
+                updateProgress();
+            });
+            obs.observe(el, { childList: true, characterData: true, subtree: true });
+        });
+        // restore last language selection
+        (function(){
+            const lang = sessionStorage.getItem('qa_lang');
+            if (lang && document.getElementById('qaLang')) {
+                document.getElementById('qaLang').value = lang;
+                if (window.recog) {
+                    window.recog.lang = (lang === 'hi') ? 'hi-IN' : 'en-US';
+                }
+            }
+        })();
+        updateProgress();
+
+        // Auto-start interview immediately (presence removed)
+        (function autoStart(){
+            if (typeof interviewStarted === 'undefined' || !interviewStarted) {
+                const lang = sessionStorage.getItem('qa_lang') || 'en';
+                if (window.recog) window.recog.lang = (lang === 'hi') ? 'hi-IN' : 'en-US';
+                if (typeof start === 'function') start();
+                document.getElementById('qaMic').classList.add('active');
+            }
+        })();
+    </script>
+</body>
+</html>
+
+

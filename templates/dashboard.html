@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Patient Dashboard</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+  <style>
+    .global-topbar { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #ffffffcc; backdrop-filter: saturate(140%) blur(10px); border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .global-topbar .brand { font-weight: 700; color: #0f172a; }
+    .global-topbar nav a { text-decoration: none; color: #334155; font-weight: 600; border: 1px solid rgba(0,0,0,0.06); padding: 6px 10px; border-radius: 10px; background: #fff; margin-left: 6px; }
+    .global-topbar nav a:hover { color: #0f172a; }
+    @media print { .global-topbar { display: none; } }
+    img.patient-photo {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="global-topbar">
+    <div class="brand">AI Health Assistant</div>
+    <nav>
+      <a href="/qa">Intake</a>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/patient_reviw">Review</a>
+      <a href="/serial-config">Serial Config</a>
+    </nav>
+  </div>
+  <div class="container" style="padding-top: 72px;">
+    <h1 style="margin: 0 0 12px;">🩺 Patient Dashboard</h1>
+
+    <div class="top-bar">
+      <input type="text" id="searchInput" placeholder="🔍 Search by name, age, or complaint..." />
+      <button class="btn export-btn" onclick="exportCSV()">⬇️ Export to CSV</button>
+    </div>
+
+    <div class="table-container">
+      <table id="patientTable">
+        <thead>
+          <tr>
+            <th>Photo</th> <!-- 🆕 New column -->
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Contact</th>
+            <th>Address</th>
+            <th>Chief Complaint</th>
+            <th>Pain Level</th>
+            <th>Pain Description</th>
+            <th>Additional Symptoms</th>
+            <th>Medical History</th>
+            <th>Emergency Name</th>
+            <th>Relation</th>
+            <th>Gender</th>
+            <th>Contact</th>
+            <th>Address</th>
+            <th>Heart Rate</th>
+            <th>SpO₂</th>
+            <th>Body Temp (°F)</th>
+            <th>Env Temp (°F)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/pages/dashboard.js') }}"></script>
+</body>
+</html>

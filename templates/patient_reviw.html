@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Review</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: #f8fbff; margin: 0; color: #0f172a; }
+        .container { max-width: 960px; margin: 24px auto; padding: 16px; }
+        h1 { margin: 0 0 12px; }
+        .card { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 14px; padding: 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .field { display:flex; flex-direction:column; gap:6px; }
+        label { font-size: 13px; color:#64748b; font-weight: 600; }
+        input, textarea { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); font-size: 14px; }
+        textarea { min-height: 70px; resize: vertical; }
+        .actions { display:flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+        .btn { padding: 10px 14px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; }
+        .btn.primary { background:#3b82f6; color:#fff; }
+        .btn.secondary { background:#e2e8f0; color:#0f172a; }
+        .note { color:#64748b; font-size: 13px; margin: 10px 0 0; }
+
+        /* Snapshot section */
+        .snapshot { display:grid; grid-template-columns: 240px 1fr; gap: 16px; align-items: center; }
+        .photo-box { display:flex; align-items:center; justify-content:center; width: 240px; height: 240px; border-radius: 12px; background:#f1f5f9; border: 1px solid rgba(0,0,0,0.06); overflow:hidden; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; display:none; }
+        .photo-box .no-photo { color:#64748b; font-size: 14px; }
+        .sensor-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .metric { background:#f8fafc; border: 1px solid rgba(0,0,0,0.06); border-radius: 10px; padding: 12px; }
+        .metric h3 { margin: 0 0 6px; font-size: 12px; color:#64748b; font-weight: 700; }
+        .metric .value { font-weight: 800; font-size: 22px; }
+        @media (max-width: 760px) { .snapshot { grid-template-columns: 1fr; } .sensor-grid { grid-template-columns: 1fr 1fr; } }
+    </style>
+</head>
+<body>
+    <div style="position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#ffffffcc;backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid rgba(0,0,0,0.06)">
+        <div style="font-weight:700;color:#0f172a">AI Health Assistant</div>
+        <nav>
+            <a href="/qa" style="text-decoration:none;color:#334155;font-weight:600;border:1px solid rgba(0,0,0,0.06);padding:6px 10px;border-radius:10px;background:#fff;margin-left:6px">Intake</a>
+            <a href="/dashboard" style="text-decoration:none;color:#334155;font-weight:600;border:1px solid rgba(0,0,0,0.06);padding:6px 10px;border-radius:10px;background:#fff;margin-left:6px">Dashboard</a>
+        </nav>
+    </div>
+    <div class="container">
+        <h1>Review Your Answers</h1>
+        <p class="note">Please verify your answers below. You can correct any mistakes before submitting.</p>
+        <div class="card" style="margin-bottom:14px">
+            <div class="snapshot">
+                <div class="photo-box">
+                    <img id="photoPreview" alt="Patient photo preview">
+                    <div id="noPhoto" class="no-photo">No photo captured</div>
+                </div>
+                <div>
+                    <div class="sensor-grid">
+                        <div class="metric">
+                            <h3>Heart Rate</h3>
+                            <div class="value"><span id="v_heart_rate">--</span> <span style="font-size:12px;color:#64748b">BPM</span></div>
+                        </div>
+                        <div class="metric">
+                            <h3>SpO₂</h3>
+                            <div class="value"><span id="v_spo2">--</span></div>
+                        </div>
+                        <div class="metric">
+                            <h3>Body Temp</h3>
+                            <div class="value"><span id="v_body_temperature">--</span></div>
+                        </div>
+                        <div class="metric">
+                            <h3>Env Temp</h3>
+                            <div class="value"><span id="v_environment_temperature">--</span></div>
+                        </div>
+                    </div>
+                    <p class="note">Sensor values are captured automatically when you submit.</p>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="grid">
+                <div class="field"><label>Full Name</label><input id="name" type="text"></div>
+                <div class="field"><label>Age</label><input id="age" type="number" min="0"></div>
+                <div class="field"><label>Gender</label><input id="gender" type="text"></div>
+                <div class="field"><label>Contact</label><input id="contact" type="text"></div>
+                <div class="field" style="grid-column: span 2"><label>Address</label><input id="address" type="text"></div>
+                <div class="field" style="grid-column: span 2"><label>Medical History</label><textarea id="medicalHistory"></textarea></div>
+                <div class="field" style="grid-column: span 2"><label>Chief Complaint</label><textarea id="chiefComplaint"></textarea></div>
+                <div class="field"><label>Pain Level (1-10)</label><input id="painLevel" type="number" min="0" max="10"></div>
+                <div class="field"><label>Pain Description</label><input id="painDescription" type="text"></div>
+                <div class="field" style="grid-column: span 2"><label>Additional Symptoms</label><textarea id="additionalSymptoms"></textarea></div>
+                <div class="field"><label>Emergency Contact Name</label><input id="emergencyName" type="text"></div>
+                <div class="field"><label>Relation</label><input id="emergencyRelation" type="text"></div>
+                <div class="field"><label>Gender</label><input id="emergencyGender" type="text"></div>
+                <div class="field"><label>Emergency Phone</label><input id="emergencyContact" type="text"></div>
+                <div class="field" style="grid-column: span 2"><label>Emergency Address</label><input id="emergencyAddress" type="text"></div>
+            </div>
+            <div class="actions">
+                <button class="btn secondary" onclick="window.location.href='/qa'">Back to Q&A</button>
+                <button class="btn primary" id="submitBtn">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Read temporary answers from sessionStorage (populated after Q&A)
+        const keys = [
+            'name','age','gender','contact','address','medicalHistory','chiefComplaint','painLevel','painDescription','additionalSymptoms','emergencyName','emergencyRelation','emergencyGender','emergencyContact','emergencyAddress'
+        ];
+
+        function loadFromStorage() {
+            keys.forEach(k => {
+                const el = document.getElementById(k);
+                if (!el) return;
+                const v = sessionStorage.getItem('qa_' + k) || '';
+                el.value = v;
+            });
+        }
+
+        async function fetchSensors() {
+            try {
+                const res = await fetch('/latest');
+                if (!res.ok) return {};
+                const d = await res.json();
+                // Update UI
+                const fmt = (x, suffix='') => (x === null || x === undefined || Number.isNaN(Number(x))) ? '--' : (suffix ? `${x}${suffix}` : `${x}`);
+                document.getElementById('v_heart_rate').innerText = fmt(d.heart_rate);
+                document.getElementById('v_spo2').innerText = fmt(d.spo2, '%');
+                document.getElementById('v_body_temperature').innerText = fmt(d.body_temperature, '°C');
+                document.getElementById('v_environment_temperature').innerText = fmt(d.environment_temperature, '°C');
+                return d;
+            } catch { return {}; }
+        }
+
+        async function onSubmit() {
+            document.getElementById('submitBtn').disabled = true;
+            const payload = {};
+            keys.forEach(k => payload[k] = document.getElementById(k)?.value || '');
+            const sensors = await fetchSensors();
+            payload.heart_rate = sensors.heart_rate;
+            payload.spo2 = sensors.spo2;
+            payload.body_temperature = sensors.body_temperature;
+            payload.environment_temperature = sensors.environment_temperature;
+            payload.photoFilename = sessionStorage.getItem('qa_photo') || null;
+
+            try {
+                const res = await fetch('/submit_patient_data', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                const out = await res.json();
+                if (res.ok && out.status === 'success') {
+                    // clear temporary storage
+                    keys.forEach(k => sessionStorage.removeItem('qa_' + k));
+                    window.location.href = '/dashboard';
+                } else {
+                    alert('Failed to submit: ' + (out.message || 'unknown error'));
+                }
+            } catch (e) {
+                alert('Network error while submitting');
+            } finally {
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        function loadPhoto() {
+            const fn = sessionStorage.getItem('qa_photo');
+            const img = document.getElementById('photoPreview');
+            const no = document.getElementById('noPhoto');
+            if (fn) {
+                img.src = '/static/uploads/' + encodeURIComponent(fn);
+                img.style.display = 'block';
+                no.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                no.style.display = 'block';
+            }
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', onSubmit);
+        window.addEventListener('load', () => { loadFromStorage(); loadPhoto(); fetchSensors(); });
+
+        // Auto-submit removed (presence detection removed)
+    </script>
+</body>
+</html>
+
+
